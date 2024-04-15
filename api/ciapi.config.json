@@ -1,0 +1,15 @@
+{
+    "DB_HOST" : "hosting-rds-1.censdrcvrdcv.us-east-1.rds.amazonaws.com",
+    "DB_USER" : "ns_proweaver_host",
+    "DB_PASS" : "8VdXGpPyTSX5qLlb",
+    "DB_DATABASE" : "ns_proweaver_host",
+
+    "SMTP_APIKEY":"51f62c91-c1c3-406a-8f84-416c79c73550",
+    "SMTP_FROM": "email@proweaverforms.com",
+
+    "TOKEN_PASS": "r2Wtp8&YRMJR#Y-8",
+    "CRYPTO_PASS": "bUa&wwgMQ8HYH=6a",
+
+    "COMP_NAME": "Company Name",
+    "ADMIN_URL": "https://ns.proweaver.host/wp2-test/pw-bookingapp/"
+}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    
+</head>
+<body>
+    <p id="result"></p>
+
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        let token = {headers:{pwauth:'TWxBUUJPbUdPM1g5NDJxUm5Ncnp6UnlrZ2xRSlJyeXcvQ0RGNDVVYTRKMUprK0tPZjFrV3IrdHZrbkYvci9saGtQRGF5NnZmWEZveVl3TjNSYjVEUmc9PTo6OPee3c+XRvB5vpYEn0QVbg'}}
+        function result(json_data){
+            document.getElementById('result').textContent = JSON.stringify(json_data);
+        }
+
+        let form = new FormData();
+        form.append('book_worker_name','James Daniel');
+        // form.append('book_services_price',2500);
+
+        axios.post('http://localhost/proweaver-booking-app/worker/fetch',form,token).then(res=>{
+            result(res.data);
+        });
+
+
+
+
+
+
+    </script>
+</body>
+</html>
