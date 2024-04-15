@@ -10,6 +10,7 @@ import PayPalButtons from '../components/PayPalButtons.vue'
 import ProweaverForms from '../components/ProweaverForms.vue'
 import { Paypal } from '../functions'
 import StyledAlertVue from '../components/SchedulerV2/StyledAlert.vue'
+import { initFormFields, evalThis } from '@/JSEffectsEvalScope'
 
 let props = defineProps({
     form:{type:Object},
@@ -82,6 +83,15 @@ let allFields = computed(()=>{
     return pageFields
 })
 
+//for JSEffects
+function getField(id,property,value = undefined){
+    if(value === undefined) return allFields.value[id][property]
+    else allFields.value[id][property] = value
+}
+
+
+
+initFormFields(getField)
 
 let allRequiredFields = computed(()=>{
     let pageFields = {}
@@ -379,49 +389,49 @@ function organizeInput(f,e){
     
 
     // conditional effects
-    let textRules = form.value.conditionals.split(' :break;')
+    // let textRules = form.value.conditionals.split(' :break;')
 
-    textRules.forEach(async el=>{
-        el = el.trim()  
-        if(el == '' || el.match(/^\s+$/g)) return
-        let condition = parseConditions(await substituteFieldPlaceholders(el.split('?')[0].trim()))
-        let effect = tokenizeEffects(el.split('?')[1].trim().split(' :;').map(effel=>effel.trim()))
+    // textRules.forEach(async el=>{
+    //     el = el.trim()  
+    //     if(el == '' || el.match(/^\s+$/g)) return
+    //     let condition = parseConditions(await substituteFieldPlaceholders(el.split('?')[0].trim()))
+    //     let effect = tokenizeEffects(el.split('?')[1].trim().split(' :;').map(effel=>effel.trim()))
 
-        // console.log(evaluateConditions(condition),condition)
-        if(el.split('?')[0].trim().includes(f.id)) 
-            effectsToggler(el.split('?')[0].trim(),effect,evaluateConditions(condition))
-    })
+    //     // console.log(evaluateConditions(condition),condition)
+    //     if(el.split('?')[0].trim().includes(f.id)) 
+    //         effectsToggler(el.split('?')[0].trim(),effect,evaluateConditions(condition))
+    // })
 
-    setTimeout(()=>{
-        const objPTM = JSON.parse(JSON.stringify(propsToModify.value))
-        for(let ptm in objPTM){
-            for(let ptmp in objPTM[ptm]){
-                if(ptmp == 'value'){
-                    let index = userInput.value.findIndex(el=>el.id == ptm);
-                    if(index == -1){
-                        userInput.value.push({
-                            id:ptm,
-                            label: (allFields.value[ptm].content_type == 'field') ? allFields.value[ptm].label : allFields.value[ptm].text,
-                            value: objPTM[ptm][ptmp]
-                        })
-                    }else{
-                        userInput.value[index] = {
-                            id: ptm,
-                            label: (allFields.value[ptm].content_type == 'field') ? allFields.value[ptm].label : allFields.value[ptm].text,
-                            value: objPTM[ptm][ptmp]
-                        }
-                    }
-                }
-                allFields.value[ptm][ptmp] = objPTM[ptm][ptmp]
-            }
-        }
-    },10)
+    // setTimeout(()=>{
+    //     const objPTM = JSON.parse(JSON.stringify(propsToModify.value))
+    //     for(let ptm in objPTM){
+    //         for(let ptmp in objPTM[ptm]){
+    //             if(ptmp == 'value'){
+    //                 let index = userInput.value.findIndex(el=>el.id == ptm);
+    //                 if(index == -1){
+    //                     userInput.value.push({
+    //                         id:ptm,
+    //                         label: (allFields.value[ptm].content_type == 'field') ? allFields.value[ptm].label : allFields.value[ptm].text,
+    //                         value: objPTM[ptm][ptmp]
+    //                     })
+    //                 }else{
+    //                     userInput.value[index] = {
+    //                         id: ptm,
+    //                         label: (allFields.value[ptm].content_type == 'field') ? allFields.value[ptm].label : allFields.value[ptm].text,
+    //                         value: objPTM[ptm][ptmp]
+    //                     }
+    //                 }
+    //             }
+    //             allFields.value[ptm][ptmp] = objPTM[ptm][ptmp]
+    //         }
+    //     }
+    // },10)
 
-    propsToModify.value = {}
+    // propsToModify.value = {}
             
-
-    
     // end of conditional effects
+
+    evalThis(f, form.value.conditionals)
 
 }
 
@@ -433,33 +443,36 @@ onMounted(async ()=>{
     await waitForCondition(()=>allFields.value != null)
     await waitForCondition(()=>Object.keys(allFields.value).length != 0)
 
-    // conditional effects
-    let textRules = form.value.conditionals.split(' :break;')
 
-    textRules.forEach(async el=>{
-        el = el.trim()  
-        if(el == '' || el.match(/^\s+$/g)) return
-        let condition = parseConditions(await substituteFieldPlaceholders(el.split('?')[0].trim()))
-        let effect = tokenizeEffects(el.split('?')[1].trim().split(' :;').map(effel=>effel.trim()))
+    evalThis(allFields.value['default_scheduler'], form.value.conditionals ?? "")
 
-        let condText = el.split('?')[0].trim();
+    // // conditional effects
+    // let textRules = form.value.conditionals.split(' :break;')
 
-        if(initialVals.value[condText] == null){
-            initialVals.value[condText] = {}
-            effect.forEach(el=>{
-                if(initialVals.value[condText][el.field] == null){
-                    initialVals.value[condText][el.field] = {}
-                }
+    // textRules.forEach(async el=>{
+    //     el = el.trim()  
+    //     if(el == '' || el.match(/^\s+$/g)) return
+    //     let condition = parseConditions(await substituteFieldPlaceholders(el.split('?')[0].trim()))
+    //     let effect = tokenizeEffects(el.split('?')[1].trim().split(' :;').map(effel=>effel.trim()))
 
-                initialVals.value[condText][el.field][el.prop] = allFields.value[el.field][el.prop]
-            })
-        }
+    //     let condText = el.split('?')[0].trim();
 
-        // console.log(evaluateConditions(condition),condition)
-        effectsToggler(el.split('?')[0].trim(),effect,evaluateConditions(condition))
-    })
+    //     if(initialVals.value[condText] == null){
+    //         initialVals.value[condText] = {}
+    //         effect.forEach(el=>{
+    //             if(initialVals.value[condText][el.field] == null){
+    //                 initialVals.value[condText][el.field] = {}
+    //             }
 
-    // end of conditional effects
+    //             initialVals.value[condText][el.field][el.prop] = allFields.value[el.field][el.prop]
+    //         })
+    //     }
+
+    //     // console.log(evaluateConditions(condition),condition)
+    //     effectsToggler(el.split('?')[0].trim(),effect,evaluateConditions(condition))
+    // })
+
+    // // end of conditional effects
 
     elementLoad('#pwfv-first-next-button').then(el=>{
         el.onclick = ()=>{
@@ -1139,7 +1152,7 @@ function hideClickHere(){
                     </strong>
                 </div>    
                 <div class="pwfv-finalfields">
-                    <div class="pwfv-recaptcha-parent hidden" v-show="false">                        
+                    <div class="hidden pwfv-recaptcha-parent" v-show="false">                        
                         <div id="recaptcha" v-show="currentPageIndex == form.pages.length -1" class="g-recaptcha" :data-sitekey="siteKey"></div>
                     </div>
                     <button @click="beforePageChange(-1)" v-if="currentPageIndex != 0"><i v-html="icons.arrowLeft"></i> Prev</button>
