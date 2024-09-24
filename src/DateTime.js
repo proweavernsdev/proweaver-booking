@@ -5,14 +5,12 @@ const timeZoneOffset = -300
 
 export async function getUTCTime() {
   let res = await axios.get(`${import.meta.env.VITE_APIURL}/datetime-curl.php`)
-
   UTCObj = res.data
   UTCObj.datetime_easy = UTCObj.utc_datetime
     .replace('T', ' ')
     .replace('Z', '')
     .match(/[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/g)[0]
   UTCObj.clientOffset = Date.now() - new Date(UTCObj.datetime_easy).getTime()
-
   UTCObj.clientOffset = Math.round(UTCObj.clientOffset / 60000) * 60000
 }
 
