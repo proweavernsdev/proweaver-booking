@@ -7,7 +7,7 @@ header('Access-Control-Allow-Headers: Pwauth');
 class Appointments extends CI_Controller{
     public function __construct(){
         parent::__construct();
-        
+        $_ENV = (array) json_decode(file_get_contents('ciapi.config.json',true));
         $this->load->model('app-models/AppointmentsModel');
         $this->load->model('TokenModel');
         $this->load->model('Utils');
@@ -29,22 +29,14 @@ class Appointments extends CI_Controller{
         $this->AppointmentsModel->create($this->input->post());
     }
 
-    public function createSchedAndAppointment(){
-        // $tokencheck = $this->TokenModel->validate($this->input->request_headers()['Pwauth']);
-        // if($tokencheck !== true){
-        //     $this->Utils->response(false,$tokencheck);
-        //     return;
-        // }
-
-        // echo json_encode($this->input->post());
-
-        $this->AppointmentsModel->createSchedAndAppointment($this->input->post());
-    }
-
     public function fetchFiltered(){
         $post = $this->input->post();
 
-        $this->AppointmentsModel->fetchFiltered($this->input->post());
+        if(empty($post['dateEnd'])) $post['dateEnd'] = $post['date'];
+
+        $post['dateEnd'] = date('Y-m-d',strtotime($post['dateEnd'] . ' +1 days'));
+
+        $this->AppointmentsModel->fetchFiltered($post);
     }
 
     public function fetch(){
@@ -86,5 +78,28 @@ class Appointments extends CI_Controller{
         // }
 
         $this->AppointmentsModel->delete($this->input->get('id'));
+    }
+
+    public function sendReminder(){
+        $this->AppointmentsModel->sendReminder($this->input->get('id'));
+    }
+
+    public function sendPenaltyToken(){
+        $this->AppointmentsModel->sendPenaltyToken(
+            $this->input->post('id'),
+            $this->input->post('token'),
+            $this->input->post('amount')
+        );
+    }
+
+
+    public function recordPenalty(){
+        $this->AppointmentsModel
+        ->recordPenaltyPayment(
+            $this->input->post('id'),
+            $this->input->post('captureId'),
+            $this->input->post('amount'),
+            $this->input->post('date')
+        );
     }
 }

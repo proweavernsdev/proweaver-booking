@@ -75,10 +75,10 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => $_ENV['DB_HOST'],
-	'username' => $_ENV['DB_USER'],
-	'password' => $_ENV['DB_PASS'],
-	'database' => $_ENV['DB_DATABASE'],
+	'hostname' => 'database-2.ckgexjkuhhne.us-west-2.rds.amazonaws.com',
+	'username' => 'w5293',
+	'password' => 'LSyIo5SmrkupvDa6',
+	'database' => 'w5293',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,

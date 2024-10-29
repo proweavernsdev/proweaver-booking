@@ -10,6 +10,30 @@ class SchedulesModel extends CI_Model{
 
     public function create($post){
         $this->db->insert('book_schedule', $post);
+        $lastAddedId = $post['book_schedule_id'];
+        if($post['book_schedule_special_status'] == '1'){
+            $this->db->insert('book_appointment', array(
+                'book_appointment_status' => 1,
+                'book_appointment_servicesname' => $post['book_schedule_service'],
+                'book_appointment_scheduleid' => $lastAddedId,
+                'book_appointment_name' => $post['book_schedule_appointee'],
+                'book_appointment_custominputs' => json_encode(array(
+                    array(
+                        "id" => "default_name",
+                        "label"=> "Name",
+                        "value" => $post['book_schedule_appointee']
+                    )
+                ))
+            ));
+
+            $this->db
+            ->set(array( 'book_schedule_reserve_id' => $this->db->insert_id() ))
+            ->where(array('book_schedule_id' => $lastAddedId))
+            ->update('book_schedule');
+        }
+
+
+        
 
         if($this->db->affected_rows() <= 0) return $this->Utils->response(false,'insertion failed');
         return $this->Utils->response(true,'insertion success');
@@ -66,19 +90,52 @@ class SchedulesModel extends CI_Model{
 
         $res = $this->db->get()->result();
 
+
+        
         if(count($res) == 0)
-            return $this->Utils->response(false,'fetch failed');
+        return $this->Utils->response(false,'fetch failed');
+        
+        
+
+
 
         for($i=0;$i<count($res);$i++){
             $j = (array) $res[$i];
             $res2 = $this->db->from('book_appointment')
             ->where('book_appointment_scheduleid',$j['book_schedule_id'])
-            ->where('book_appointment_status',1)
+            ->group_start()
+                ->where('book_appointment_status',1)
+                ->or_where('book_appointment_status',3 )
+            ->group_end()
             ->select('count(*)')
             ->get()->result_array();
-            $res[$i]->count_appointments = $res2[0]['count(*)'];
-            $res[$i]->is_full = $res2[0]['count(*)'] >= $res[$i]->book_schedule_maxappointment;
             
+
+            $resCheckConflict = $this->db->from('book_schedule')
+            ->where('book_schedule_status',0)
+            ->where('book_schedule_date',$j['book_schedule_date'])
+            ->where('book_schedule_timestart',$j['book_schedule_timestart'])
+            ->where('book_schedule_timeend',$j['book_schedule_timeend'])
+            ->where('book_schedule_id !=',$j['book_schedule_id'])
+            ->get()->result();
+
+            $conflicts = 0;
+            
+            for($x=0;$x<count($resCheckConflict);$x++){
+                $y = (array) $resCheckConflict[$x];
+                $conflicts = $this->db->from('book_appointment')
+                ->where('book_appointment_scheduleid',$y['book_schedule_id'])
+                ->group_start()
+                    ->or_where('book_appointment_status',0)
+                    ->or_where('book_appointment_status',1)
+                    ->or_where('book_appointment_status',3)
+                ->group_end()
+                ->count_all_results(); 
+            }
+
+            $res[$i]->count_appointments = $res2[0]['count(*)'];
+            $res[$i]->conflicts = $conflicts;
+            $res[$i]->is_full = $res2[0]['count(*)'] >= $res[$i]->book_schedule_maxappointment || $conflicts > 0;
         }   
 
         return $this->Utils->response(true,null,$res);
@@ -107,12 +164,62 @@ class SchedulesModel extends CI_Model{
     }
 
     public function update($id,$post){
+        $res = $this->db
+        ->where(array('book_schedule_id' => $post['book_schedule_id']))
+        ->from('book_schedule')
+        ->get()->result()[0];
+
+        
+
+        if($post['book_schedule_special_status'] == 1 && $res->book_schedule_reserve_id == null){
+            $this->db->insert('book_appointment', array(
+                'book_appointment_status' => 1,
+                'book_appointment_servicesname' => $post['book_schedule_service'],
+                'book_appointment_scheduleid' => $post['book_schedule_id'],
+                'book_appointment_name' => $post['book_schedule_appointee'],
+                'book_appointment_custominputs' => json_encode(array(
+                    array(
+                        "id" => "default_name",
+                        "label"=> "Name",
+                        "value" => $post['book_schedule_appointee']
+                    )
+                ))
+            ));
+
+            $post['book_schedule_reserve_id'] = $this->db->insert_id();
+
+        }else if($post['book_schedule_special_status'] == 1 && $post['book_schedule_appointee'] != $res->book_schedule_appointee){
+            $this->db
+            ->set(array(
+                'book_appointment_name' => $post['book_schedule_appointee'],
+                'book_appointment_custominputs' => json_encode(array(
+                    array(
+                        "id" => "default_name",
+                        "label"=> "Name",
+                        "value" => $post['book_schedule_appointee']
+                    )
+                ))
+            ))
+            ->where(array('book_appointment_id' => $res->book_schedule_reserve_id))
+            ->update('book_appointment');
+        }else if($post['book_schedule_special_status'] != 1 && $res->book_schedule_reserve_id != null){
+            $this->db
+            ->where(array('book_appointment_id' => $res->book_schedule_reserve_id))
+            ->delete('book_appointment');
+
+            $post['book_schedule_reserve_id'] = NULL;
+            $post['book_schedule_appointee'] = NULL;
+        }
+
         $this->db->trans_start();
         $this->db
         ->set($post)
         ->where(array('book_schedule_id' => $id))
         ->update('book_schedule');
         $this->db->trans_complete();
+        
+        
+        
 
         if($this->db->affected_rows() <= 0) {
             if($this->db->trans_status() === false) return $this->Utils->response(false,'update failed');
@@ -122,10 +229,21 @@ class SchedulesModel extends CI_Model{
     }
 
     public function delete($id){
+        $res = $this->db
+        ->where(array('book_schedule_id' => $id))
+        ->from('book_schedule')
+        ->get()->result()[0];
+
+        if($res->book_schedule_reserve_id != null){
+            $this->db
+            ->where(array('book_appointment_id' => $res->book_schedule_reserve_id))
+            ->delete('book_appointment');
+        }
+        
+        
         $this->db
         ->where(array('book_schedule_id' => $id))
         ->delete('book_schedule');
-        
         
         if($this->db->affected_rows() <= 0) return $this->Utils->response(false,'deletion failed');
         

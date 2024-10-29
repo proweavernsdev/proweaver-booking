@@ -7,7 +7,6 @@ header('Access-Control-Allow-Headers: Pwauth');
 class Schedules extends CI_Controller{
     public function __construct(){
         parent::__construct();
-        
         $this->load->model('app-models/SchedulesModel');
         $this->load->model('TokenModel');
         $this->load->model('Utils');
@@ -19,8 +18,19 @@ class Schedules extends CI_Controller{
         //     $this->Utils->response(false,$tokencheck);
         //     return;
         // }
-
-        $this->SchedulesModel->create($this->input->post());
+        $postData = $this->input->post();
+        $datetimeStart = $this->input->post('book_schedule_date', TRUE).' '.$this->input->post('book_schedule_timestart', TRUE);
+        $datetimeEnd = $this->input->post('book_schedule_date', TRUE).' '.$this->input->post('book_schedule_timeend', TRUE);
+        $newDateTimeStart = new DateTime($datetimeStart);
+        $newDateTimeEnd = new DateTime($datetimeEnd);
+        if ($newDateTimeStart->format('I') == 1) {
+            // DST is in effect, subtract 1 hour
+            $newDateTimeStart->modify('-1 hour');
+            $newDateTimeEnd->modify('-1 hour');
+            $postData['book_schedule_timestart'] = $newDateTimeStart->format('H:i');
+            $postData['book_schedule_timeend'] = $newDateTimeEnd->format('H:i');
+        }
+        $this->SchedulesModel->create($postData);
     }
 
     public function fetch(){
@@ -69,8 +79,19 @@ class Schedules extends CI_Controller{
         //     $this->Utils->response(false,$tokencheck);
         //     return;
         // }
-
-        $this->SchedulesModel->update($this->input->get('id'),$this->input->post());
+        $postData = $this->input->post();
+        $datetimeStart = $this->input->post('book_schedule_date', TRUE).' '.$this->input->post('book_schedule_timestart', TRUE);
+        $datetimeEnd = $this->input->post('book_schedule_date', TRUE).' '.$this->input->post('book_schedule_timeend', TRUE);
+        $newDateTimeStart = new DateTime($datetimeStart);
+        $newDateTimeEnd = new DateTime($datetimeEnd);
+        if ($newDateTimeStart->format('I') == 1) {
+            // DST is in effect, subtract 1 hour
+            $newDateTimeStart->modify('-1 hour');
+            $newDateTimeEnd->modify('-1 hour');
+            $postData['book_schedule_timestart'] = $newDateTimeStart->format('H:i');
+            $postData['book_schedule_timeend'] = $newDateTimeEnd->format('H:i');
+        }
+        $this->SchedulesModel->update($this->input->get('id'), $postData);
     }
 
     public function delete(){

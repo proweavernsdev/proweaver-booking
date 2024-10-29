@@ -7,7 +7,7 @@ header('Access-Control-Allow-Headers: Pwauth');
 class Location extends CI_Controller{
     public function __construct(){
         parent::__construct();
-        
+        $_ENV = (array) json_decode(file_get_contents('ciapi.config.json',true));
         $this->load->model('app-models/LocationModel');
         $this->load->model('TokenModel');
         $this->load->model('Utils');

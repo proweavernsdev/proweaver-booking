@@ -7,7 +7,7 @@ header('Access-Control-Allow-Headers: Pwauth');
 class Worker extends CI_Controller{
     public function __construct(){
         parent::__construct();
-        
+        $_ENV = (array) json_decode(file_get_contents('ciapi.config.json',true));
         $this->load->model('app-models/WorkerModel');
         $this->load->model('TokenModel');
         $this->load->model('Utils');
