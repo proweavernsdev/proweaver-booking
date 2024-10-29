@@ -517,19 +517,26 @@ async function saveChanges() {
         axios.post('schedules/create', null, el).then(() => completedCreate++);
     });
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> ebc8221cbf947279ab057d54df87de98420ae291
     updated.forEach(el => {
         axios.post('schedules/update?id=' + el.book_schedule_id, null, el).then(() => completedUpdate++);
     });
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> ebc8221cbf947279ab057d54df87de98420ae291
     editTracker.deleted.forEach(el => {
         axios.post('schedules/delete?id=' + el, null).then(() => {
             completedDelete++;
         });
     });
 
+<<<<<<< HEAD
     // setInterval(() => {
     //     let conditions = [false, false, false];
 
@@ -540,6 +547,18 @@ async function saveChanges() {
     //     if (conditions[0] && conditions[1] && conditions[2]) window.location.reload();
 
     // }, 500);
+=======
+    setInterval(() => {
+        let conditions = [false, false, false];
+
+        if (completedCreate == created.length) conditions[0] = true;
+        if (completedUpdate == updated.length) conditions[1] = true;
+        if (completedDelete == editTracker.deleted.length) conditions[2] = true;
+
+        if (conditions[0] && conditions[1] && conditions[2]) window.location.reload();
+
+    }, 500);
+>>>>>>> ebc8221cbf947279ab057d54df87de98420ae291
 
 }
 
@@ -770,7 +789,11 @@ function fetchServices() {
                     <h3 class="font-semibold mb-2">Time Slots</h3>
                     <div class="max-h-[150px] overflow-y-auto">
                         <div class="grid mb-2 gap-1" style="grid-template-columns: 1fr 15px 1fr 30px;"
+<<<<<<< HEAD
                             v-for="ts, i in _timeSlots" :key="i">
+=======
+                            v-for="ts, i in _timeSlots">
+>>>>>>> ebc8221cbf947279ab057d54df87de98420ae291
                             <input type="time" class="bg-gray-100 p-1" v-model="_timeSlots[i].time_start">
                             <p class="text-center">-</p>
                             <input type="time" class="bg-gray-100 p-1" v-model="_timeSlots[i].time_end">
@@ -782,8 +805,12 @@ function fetchServices() {
                         </div>
                     </div>
                     <button class="flex gap-1 items-center"
+<<<<<<< HEAD
                         @click="_timeSlots.push({ time_start: '00:00', time_end: '01:00' })"><i v-html="icons.add"></i>
                         Add
+=======
+                        @click="_timeSlots.push({ time_start: '00:00', time_end: '01:00' })"><i v-html="icons.add"></i> Add
+>>>>>>> ebc8221cbf947279ab057d54df87de98420ae291
                         Timeslot</button>
                 </div>
                 <div v-if="errorMsgModal != ''" v-html="errorMsgModal"
@@ -852,7 +879,12 @@ function fetchServices() {
                 :class="{ 'border-solid': cb.isCurrentMonth, 'border-dotted text-stone-600': !cb.isCurrentMonth }"
                 @click="cb.onclick(cb.date)">
                 <h3 class="text-2xl mb-3">{{ cb.dateNum }}</h3>
+<<<<<<< HEAD
                 <div class="mb-2" v-for="ds, i in daySchedules(cb.date)" @click="queScheduleFuncs.set(ds)" :key="i">
+=======
+
+                <div class="mb-2" v-for="ds, i in daySchedules(cb.date)" @click="queScheduleFuncs.set(ds)">
+>>>>>>> ebc8221cbf947279ab057d54df87de98420ae291
                     <div
                         v-if="i < 2 || (showMoreScheds && dateAdjusted(cb.date + ' 00:00:00').getTime() == dateAdjusted(qd.y, qd.m, qd.d).getTime())">
                         <h4 class="font-semibold text-md max-w-full">
@@ -860,11 +892,15 @@ function fetchServices() {
                             <i class="ml-2 w-[10px] h-[10px] rounded-full mt-1 inline-block"
                                 :style="{ background: ds.color }"></i>
                         </h4>
+<<<<<<< HEAD
                         <p v-if="new Date(ds.shift_date).getTime() > new Date('2024-11-01').getTime()" class="text-sm">
                             {{ moment(ds.shift_start, "H:mm").format("h:mma") }} - 
                             {{ moment(ds.shift_end, "H:mm").format("h:mma") }}
                         </p>
                         <p v-else class="text-sm">
+=======
+                        <p class="text-sm">
+>>>>>>> ebc8221cbf947279ab057d54df87de98420ae291
                             {{ dateFormat('%h1:%I%a', ds.shift_date + ' ' + ds.shift_start) }} -
                             {{ dateFormat('%h1:%I%a', ds.shift_date + ' ' + ds.shift_end) }}
                         </p>
@@ -874,13 +910,22 @@ function fetchServices() {
                     (schedLengths[cb.date] > 2 && dateAdjusted(cb.date + ' 00:00:00').getTime() != dateAdjusted(qd.y, qd.m, qd.d).getTime() && schedLengths[cb.date] > 2) ||
                     (!showMoreScheds && dateAdjusted(cb.date + ' 00:00:00').getTime() == dateAdjusted(qd.y, qd.m, qd.d).getTime() && schedLengths[cb.date] > 2 && schedLengths[cb.date] > 2)
                 " @click="showMoreScheds = true"> {{
+<<<<<<< HEAD
                     dateAdjusted(cb.date + ' 00:00:00').getTime() == dateAdjusted(qd.y, qd.m, qd.d).getTime() ?
                         'Show ' + (schedLengths[cb.date] - 2) + ' more...' : '+' + (schedLengths[cb.date] - 2) +' more'
                     }}</button>
+=======
+            dateAdjusted(cb.date + ' 00:00:00').getTime() == dateAdjusted(qd.y, qd.m, qd.d).getTime() ?
+                'Show ' + (schedLengths[cb.date] - 2) + ' more...' : '+' + (schedLengths[cb.date] - 2)+' more' }}</button>
+>>>>>>> ebc8221cbf947279ab057d54df87de98420ae291
                 <button @click="queScheduleFuncs.set(); _date = cb.date; _date_end = cb.date;"
                     class="flex items-center gap-2 border-t mt-3 pt-1 text-sm w-full"
                     v-if="dateAdjusted(cb.date + ' 00:00:00').getTime() == dateAdjusted(qd.y, qd.m, qd.d).getTime()"><i
                         class="font-bold pb-1">+</i> Add Schedule</button>
+<<<<<<< HEAD
+=======
+
+>>>>>>> ebc8221cbf947279ab057d54df87de98420ae291
             </div>
         </div>
     </div>
